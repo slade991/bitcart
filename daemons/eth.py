@@ -394,7 +394,7 @@ class ETHDaemon(BlockProcessorDaemon):
         ):
             raise Exception("Invalid mix of transaction fee params")
         if has_modern_params:
-            base_fee = (await self.get_block_safe("latest")).baseFeePerGas
+            base_fee = (await self.coin.get_block_safe("latest")).baseFeePerGas
             fee = (from_wei(tx_dict["maxPriorityFeePerGas"]) + from_wei(base_fee)) * tx_dict["gas"]
         else:
             fee = from_wei(tx_dict["gasPrice"]) * tx_dict["gas"]
@@ -414,7 +414,7 @@ class ETHDaemon(BlockProcessorDaemon):
 
     @rpc(requires_network=True)
     async def get_tx_status(self, tx, wallet=None):
-        data = self.coin.to_dict(await self.get_tx_receipt_safe(tx))
+        data = self.coin.to_dict(await self.coin.get_tx_receipt_safe(tx))
         data["confirmations"] = await self.coin.get_confirmations(tx, data)
         return data
 
@@ -482,7 +482,7 @@ class ETHDaemon(BlockProcessorDaemon):
 
     async def get_fee_params(self):
         if self.EIP1559_SUPPORTED:
-            block = await self.get_block_safe("latest")
+            block = await self.coin.get_block_safe("latest")
             max_priority_fee = await self.coin.web3.eth.max_priority_fee
             max_fee = block.baseFeePerGas * 2 + max_priority_fee
             return {"maxFeePerGas": max_fee, "maxPriorityFeePerGas": max_priority_fee}
